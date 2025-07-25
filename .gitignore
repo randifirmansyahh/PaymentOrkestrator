@@ -1,0 +1,47 @@
+# Build results
+bin/
+obj/
+out/
+
+# User-specific files
+*.user
+*.userosscache
+*.suo
+*.sln.docstates
+
+# Visual Studio Code
+.vscode/
+
+# Visual Studio
+.vs/
+
+# Rider (JetBrains)
+.idea/
+
+# Dependency caches
+packages/
+*.nupkg
+*.snupkg
+project.lock.json
+project.assets.json
+
+# Logs
+*.log
+
+# Temp
+*.tmp
+*.bak
+*.cache
+
+# Secrets
+secrets.json
+# appsettings.Development.json # opsional, tergantung isi dan kebijakan tim
+
+# Test Results
+TestResults/
+*.coverage
+*.coveragexml
+
+# Others
+*.DS_Store
+Thumbs.db
