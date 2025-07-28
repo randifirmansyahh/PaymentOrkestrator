@@ -28,9 +28,9 @@ builder.Services.AddHttpContextAccessor();
 // 3. DI
 // Register Repository Layer / bagusnya di jadiin satu modul tersendiri
 builder.Services
-    .AddSingleton<PayinRepository>()
-    .AddSingleton<MerchantRepository>()
-    .AddSingleton<TerminalSettingRepository>();
+    .AddScoped<PayinRepository>()
+    .AddScoped<MerchantRepository>()
+    .AddScoped<TerminalSettingRepository>();
 
 // Register Flow Modul
 builder.Services.AddPayinModule();
