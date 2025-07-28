@@ -11,8 +11,8 @@ namespace PaymentOrkestrator.core.payin
         public static IServiceCollection AddPayinModule(this IServiceCollection services)
         {
             // Daftar semua controller Payin
-            services.AddSingleton<PayinController>();
-            services.AddSingleton<WebhookController>();
+            services.AddScoped<PayinController>();
+            services.AddScoped<WebhookController>();
 
             // Daftar semua service Payin
             services.AddSingleton<PayinService>();
