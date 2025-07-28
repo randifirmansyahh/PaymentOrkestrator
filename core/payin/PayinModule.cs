@@ -11,20 +11,20 @@ namespace PaymentOrkestrator.core.payin
         public static IServiceCollection AddPayinModule(this IServiceCollection services)
         {
             // Daftar semua controller Payin
-            services.AddScoped<PayinController>();
-            services.AddScoped<WebhookController>();
+            services.AddSingleton<PayinController>();
+            services.AddSingleton<WebhookController>();
 
             // Daftar semua service Payin
-            services.AddScoped<PayinService>();
-            services.AddScoped<PayinWebhookHandlerService>();
-            services.AddScoped<PayinGatewayResolverService>();
+            services.AddSingleton<PayinService>();
+            services.AddSingleton<PayinWebhookHandlerService>();
+            services.AddSingleton<PayinGatewayResolverService>();
 
             // Finmo
-            services.AddScoped<FinmoAdapter>();
-            services.AddScoped<FinmoVAPayloadBuilder>();
-            services.AddScoped<FinmoQRISPayloadBuilder>();
-            services.AddScoped<FinmoVANormalizer>();
-            services.AddScoped<FinmoQRISNormalizer>();
+            services.AddSingleton<FinmoAdapter>();
+            services.AddSingleton<FinmoVAPayloadBuilder>();
+            services.AddSingleton<FinmoQRISPayloadBuilder>();
+            services.AddSingleton<FinmoVANormalizer>();
+            services.AddSingleton<FinmoQRISNormalizer>();
 
             // Tambah LocalPayment dsb kalau ada
 

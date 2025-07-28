@@ -11,16 +11,16 @@ var builder = WebApplication.CreateBuilder(args);
 // Configuration from appsettings.json (MySQL, API Key, Finmo, etc.)
 var configuration = builder.Configuration;
 
-// 1. Add Controllers, JSON Serializer, and API Behavior Options
+// 1. Add Controllers, JSON Serializer, and API Behavior Options, Db Connections
 builder.Services.AddControllers().AddCustomJsonOptions();
 
 if (builder.Environment.IsDevelopment()) builder.Services.AddCustomSwagger();
 
-// 2. Register MySQL Connection Factory
-builder.Services.AddScoped<DbConnectionFactory>();
-
-// Register MySQL Merchant Connection Factory
-builder.Services.AddScoped<DbMerchantConnectionFactory>();
+// Register Db Connection
+builder.Services.AddTransient<IProductionDbConnectionWrite, ProductionDbConnectionWrite>();
+builder.Services.AddTransient<IProductionDbConnectionReadOnly, ProductionDbConnectionReadOnly>();
+builder.Services.AddTransient<ISandboxDbConnectionWrite, SandboxDbConnectionWrite>();
+builder.Services.AddTransient<ISandboxDbConnectionReadOnly, SandboxDbConnectionReadOnly>();
 
 // Register HTTP Context Accessor, which allows access to the current HTTP context
 builder.Services.AddHttpContextAccessor();
@@ -28,15 +28,15 @@ builder.Services.AddHttpContextAccessor();
 // 3. DI
 // Register Repository Layer / bagusnya di jadiin satu modul tersendiri
 builder.Services
-    .AddScoped<PayinRepository>()
-    .AddScoped<MerchantRepository>()
-    .AddScoped<TerminalSettingRepository>();
+    .AddSingleton<PayinRepository>()
+    .AddSingleton<MerchantRepository>()
+    .AddSingleton<TerminalSettingRepository>();
 
 // Register Flow Modul
 builder.Services.AddPayinModule();
 
 // Register Merchant Services
-builder.Services.AddScoped<MerchantService>();
+builder.Services.AddSingleton<MerchantService>();
 
 // 4. CORS Policy (optional, jika perlu)
 builder.Services.AddCustomCors();
