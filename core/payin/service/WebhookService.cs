@@ -18,7 +18,7 @@ namespace PaymentOrkestrator.core.payin.service
         {
             _logger.LogInformation("Handling Finmo Payin Webhook for Merchant: {MerchantId}, With Request: {payload}", payload.GetMerchantId(), payload);
 
-            await _payinRepository.SyncPayinUpdateAsync(payload.GetMerchantId(), payload.Id, payload.Status);
+            await _payinRepository.UpdatePayinAsync(payload.Id, payload.Status);
         }
     }
 }

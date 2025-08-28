@@ -10,17 +10,21 @@ using SqlKata.Execution;
 namespace PaymentOrkestrator.core.payin.service
 {
     public class PayinService(
+        ILogger<PayinService> logger,
         PayinGatewayResolverService gatewayResolver,
         PayinRepository payinRepo,
-        ILogger<PayinService> logger,
-        DbConnectionFactory dbFactory
-    )
+        IHttpContextAccessor httpContextAccessor,
+        IProductionDbConnectionWrite productionDbConnectionWrite,
+        ISandboxDbConnectionWrite sandboxDbConnectionWrite)
     {
+        private readonly ILogger<PayinService> _logger = logger;
+        private readonly IHttpContextAccessor _httpContextAccessor = httpContextAccessor;
+        private readonly IProductionDbConnectionWrite _productionDbConnectionWrite = productionDbConnectionWrite;
+        private readonly ISandboxDbConnectionWrite _sandboxDbConnectionWrite = sandboxDbConnectionWrite;
+
         private readonly PayinGatewayResolverService _gatewayResolver = gatewayResolver;
         private readonly PayinRepository _payinRepo = payinRepo;
 
-        private readonly ILogger<PayinService> _logger = logger;
-        private readonly DbConnectionFactory _dbFactory = dbFactory;
         /// <summary>
         /// Create a new payin transaction, full flow
         /// </summary>
@@ -47,7 +51,7 @@ namespace PaymentOrkestrator.core.payin.service
             CreatePayinResponseNormalize normalized = responseNormalizer.Normalize(rawResponse);
 
             // Save to both DB
-            await _payinRepo.SyncSqlKataPayinCreateAsync(merchant.Id!, normalized.ToPayinTable());
+            await _payinRepo.SqlKataCreateAsync(normalized.ToPayinTable());
 
             // Prepare response
             return normalized.ToPayinResponse();
@@ -86,13 +90,18 @@ namespace PaymentOrkestrator.core.payin.service
             // Get the normalized response
             CreatePayinResponseNormalize normalized = responseNormalizer.Normalize(rawResponse);
 
-            await _dbFactory.WithTransactionAsync(async (c, tx) =>
+            using var conn = _httpContextAccessor.ResolveConnectionWrite(
+                _productionDbConnectionWrite,
+                _sandboxDbConnectionWrite
+            );
+
+            await conn.WithTransactionAsync(async (c, tx) =>
             {
                 await c.Table("payins").InsertAsync(normalized.ToPayinTable(), tx);
                 await c.Table("logs").InsertAsync(new LogModel("payin_response_psp", rawResponse, merchant.Id), tx);
                 await c.Table("logs").Where("id", "123").UpdateAsync(new { process_name = "payin_response_psp" }, tx);
                 await c.Table("logs").WhereNull("process_name").DeleteAsync(tx);
-            });
+            }, _logger);
 
             // test combine write and read only connection
             //var ori = await _payinRepo.SqlKataGetByIdAsync(normalized.Id!);

@@ -1,7 +1,10 @@
 ﻿using Microsoft.Extensions.Primitives;
 using PaymentOrkestrator.data.entities;
 using PaymentOrkestrator.shared.constants;
+using PaymentOrkestrator.shared.database;
 using PaymentOrkestrator.shared.helpers;
+using PaymentOrkestrator.Shared.Constants;
+using System.Data;
 
 namespace PaymentOrkestrator.shared.extensions
 {
@@ -38,6 +41,44 @@ namespace PaymentOrkestrator.shared.extensions
             context.Items.TryGetValue(DbEnvironmentKey, out var envObj);
             string environment = envObj as string ?? throw new CustomHttpException(ErrorCodes.INVALID_API_KEY);
             return environment;
+        }
+
+        public static IDbConnection ResolveConnectionRead(this IHttpContextAccessor httpContextAccessor,
+            IProductionDbConnectionReadOnly productionDbConnectionReadOnly,
+            ISandboxDbConnectionReadOnly sandboxDbConnectionReadOnly)
+        {
+            try
+            {
+
+                string environment = httpContextAccessor.HttpContext?.GetDbEnvironment()
+                    ?? throw new CustomHttpException(ErrorCodes.INVALID_API_KEY, "HttpContext is null or environment not set");
+
+                if (environment == PaymentConstants.ProductionEnvironment) return productionDbConnectionReadOnly.GetConnection();
+                else if (environment == PaymentConstants.SandboxEnvironment) return sandboxDbConnectionReadOnly.GetConnection();
+                throw new CustomHttpException(ErrorCodes.INVALID_API_KEY, $"Invalid environment: {environment}");
+            }
+            catch (Exception ex)
+            {
+                throw new CustomHttpException(ErrorCodes.INTERNAL_SERVER_ERROR, ex.Message);
+            }
+        }
+
+        public static IDbConnection ResolveConnectionWrite(this IHttpContextAccessor httpContextAccessor,
+            IProductionDbConnectionWrite productionDbConnectionWrite,
+            ISandboxDbConnectionWrite sandboxDbConnectionWrite)
+        {
+            try
+            {
+                string environment = httpContextAccessor.HttpContext?.GetDbEnvironment()
+                    ?? throw new CustomHttpException(ErrorCodes.INVALID_API_KEY, "HttpContext is null or environment not set");
+                if (environment == PaymentConstants.ProductionEnvironment) return productionDbConnectionWrite.GetConnection();
+                else if (environment == PaymentConstants.SandboxEnvironment) return sandboxDbConnectionWrite.GetConnection();
+                throw new CustomHttpException(ErrorCodes.INVALID_API_KEY, $"Invalid environment: {environment}");
+            }
+            catch (Exception ex)
+            {
+                throw new CustomHttpException(ErrorCodes.INTERNAL_SERVER_ERROR, ex.Message);
+            }
         }
     }
 }
